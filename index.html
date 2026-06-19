@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>App Ventas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- HEADER -->
+ <header class="header">
+  <img src="logo.png" class="logo" style="height:120px;">
+
+  <!-- 🔥 BOTÓN LOGOUT -->
+  <button id="btnLogout" onclick="logout()" class="btn-logout" style="display:none;">
+    Cerrar sesión
+  </button>
+</header>
+
+  <!-- LOGIN -->
+  <div id="login">
+    <h2>Login</h2>
+<input 
+  type="email" 
+  id="email" 
+  placeholder="Correo"
+  autocomplete="email"
+/>
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="login()">Ingresar</button>
+  </div>
+
+ <div id="ventas" class="ventas-layout" style="display:none;">
+
+<!---->
+<!--Vendedor-->
+<!---->
+  <!-- 🔹 CLIENTE (ARRIBA DE TODO) -->
+  <div class="cliente-top">
+    <div></div>
+    <div class="cliente-header">
+    👤 Datos del cliente
+  </div>
+<input 
+  type="text" 
+  id="nombreCliente" 
+  placeholder="Nombre cliente"
+  autocomplete="name"
+/>
+
+<input 
+  type="text" 
+  id="cedulaCliente" 
+  placeholder="Cédula"
+  autocomplete="off"
+/>
+  </div>
+
+  <!-- 🔹 IZQUIERDA (PRODUCTOS) -->
+  <div class="col-productos">
+    <h2>🛍 Productos</h2>
+
+    <input type="text" id="buscador" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
+    <div id="categoriasProductos" class="categorias-productos"></div>
+    <div id="listaProductos" class="productos-grid"></div>
+  </div>
+
+  <!-- 🔹 DERECHA (CARRITO + TODO) -->
+  <div class="col-carrito">
+
+    <h2>🛒 Carrito</h2>
+
+    <div id="carrito"></div>
+
+    <h2>Total: $<span id="total">0</span></h2>
+
+    <h3>💳 Método de pago</h3>
+
+    <select id="metodoPago" onchange="cambiarMetodoPago()">
+      <option value="">Seleccione</option>
+      <option value="efectivo">Efectivo</option>
+      <option value="nequi">Nequi</option>
+      <option value="tarjeta">Tarjeta</option>
+    </select>
+
+    <div id="pagoEfectivo" style="display:none;">
+      <div></div>
+      <label for="recibido"></label>
+<input
+  type="text"
+  id="recibido"
+  placeholder="Dinero recibido"
+  autocomplete="off"
+  oninput="formatearInput(this); calcularCambio()"
+/>
+      <p>💵 Cambio: $<span id="cambio">0</span></p>
+    
+    </div>
+<div></div>
+    <button onclick="guardarVenta(this)">💰 Finalizar venta</button>
+
+  </div>
+
+<button class="btn-cierre" onclick="cierreDelDia()">
+  📊 Cierre del día
+</button>
+<div id="modalCierre" class="modal" style="display:none;">
+  <div class="modal-contenido">
+
+    <div id="resultadoCierre"></div>
+
+    <button onclick="cerrarCierre()">Cerrar</button>
+
+  </div>
+</div>
+</div>
+
+<!---->
+<!--Administrador-->
+<!---->
+<div id="admin" class="card" style="display:none;">
+
+
+  <h2>📊 Panel Admin</h2>
+
+  <!-- 🔥 MENÚ -->
+  <div class="admin-menu">
+<button id="btnInventario" onclick="mostrarSeccion('inventario')">📦 Inventario</button>
+<button id="btnVentas" onclick="mostrarSeccion('ventasHoy')">📊 Ventas del día</button>
+<button id="btnReporte" onclick="mostrarSeccion('reporte')">📅 Reporte mensual</button>
+<button id="btnGastos" onclick="mostrarSeccion('gastos')">💸 Gastos</button>
+<button id="btnCostos" onclick="mostrarSeccion('costos')">💰 Costos</button>
+<button id="btnContactos" onclick="mostrarSeccion('contactos')">📇 Contactos</button>
+  </div>
+
+  <hr>
+
+  <!-- 📦 INVENTARIO -->
+  <div id="inventario" class="seccion-admin">
+
+  <h3>📦 Inventario</h3>
+
+  <div class="inventario-container">
+
+    <!-- 🔹 SUBMENÚ -->
+    <div class="inventario-menu">   
+  <button id="btnVer" onclick="cambiarVistaInventario('ver')">📋 Ver inventario</button>
+  <button id="btnIngreso" onclick="cambiarVistaInventario('ingresar')">➕ Ingreso inventario</button>
+  <button id="btnEditar" onclick="cambiarVistaInventario('editar')">✏️ Modificar inventario</button>
+    </div>
+
+    <!-- 🔹 CONTENIDO -->
+    <div class="inventario-contenido">
+
+      <!-- ✅ VER INVENTARIO -->
+      <div class="tabla-scroll">
+      <div id="vistaVerInventario" class="vista-inventario">
+        <table>
+          <thead>
+            <tr>
+              <th>Proveedor</th>
+              <th>Fecha</th>
+              <th>Categoría</th>
+              <th>Nom. Producto</th>
+              <th>SKU</th>
+              <th>Cantidad</th>
+              <th>Costo Unitario</th>
+              <th>Total Costo</th>
+              <th>Venta Unitaria</th>
+            </tr>
+          </thead>
+          <tbody id="tablaVerInventario"></tbody>
+        </table>
+      </div>
+     </div> 
+      <!-- ✅ INGRESAR INVENTARIO -->
+      <div id="vistaIngresoInventario" class="vista-inventario" style="display:none;">
+        
+        <select id="proveedorInv">
+  <option value="">Seleccionar proveedor</option>
+</select>
+<input type="date" id="fechaInv" onclick="this.showPicker()">
+<select id="categoriaInv">
+    <option value="" selected disabled>Categoría</option>
+  <option value="Granizados Cremosos">Granizados Cremosos</option>
+  <option value="Jugos">Jugos</option>
+  <option value="Smoothies">Smoothies</option>
+  <option value="Granizados">Granizados</option>
+  <option value="Malteadas">Malteadas</option>
+  <option value="Sodas">Sodas</option>
+  <option value="Extras">Extras</option>
+</select>
+        <input type="text" id="nombreProducto" placeholder="Nombre del producto">
+        <input type="text" id="skuInv" placeholder="SKU ejemplo (BB-001)">
+
+        <input type="number" id="cantidadInv" placeholder="Cantidad">
+
+        <input type="text" id="costoUnitarioInv" placeholder="Costo unitario" oninput="formatearInput(this)">
+        
+        <input type="text" id="totalCostoInv" placeholder="Total costo" readonly>
+
+        <input type="text" id="ventaUnitariaInv" placeholder="Venta unitaria" oninput="formatearInput(this)">
+        <div></div>
+        <button onclick="guardarInventario(this)">Guardar</button>
+
+      </div>
+
+      <!-- ✅ MODIFICAR INVENTARIO -->
+      <div id="vistaEditarInventario" class="vista-inventario" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Proveedor</th>
+              <th>Fecha</th>
+              <th>Categoría</th>
+              <th>Nom. Producto</th>
+              <th>SKU</th>
+              <th>Cantidad</th>
+              <th>Costo Unitario</th>
+              <th>Total Costo</th>
+              <th>Venta Unitaria</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tablaEditarInventario"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+  <!-- 📊 VENTAS HOY -->
+  <div id="ventasHoy" class="seccion-admin" style="display:none;">
+  <h3>Ventas del día</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Productos</th>
+        <th>Total</th>
+        <th>Método</th>
+        <th>Hora</th>
+      </tr>
+    </thead>
+    <tbody id="tablaVentasHoy"></tbody>
+  </table>
+
+  <h4>Total del día: $<span id="totalHoy">0</span></h4>
+</div>
+
+  <!-- 📅 REPORTE -->
+<div id="reporte" class="seccion-admin" style="display:none;">
+  
+  <div class="filtro-fechas">
+
+    <div class="campo-fecha">
+      <label for="fechaInicio">📅 Fecha inicio</label>
+<input type="date" id="fechaInicio" onclick="this.showPicker()">
+    </div>
+
+    <div class="campo-fecha">
+     <label for="fechaFin">📅 Fecha fin</label>
+<input type="date" id="fechaFin" onclick="this.showPicker()">
+    </div>
+
+    <button onclick="reportePorFechas(this)">📊 Generar reporte</button>
+
+  </div>
+
+  <!-- 🔥 AQUÍ ESTÁ LO QUE FALTABA -->
+  <div id="tablaReporte"></div>
+
+</div>
+
+  <!-- 💸 GASTOS -->
+  <div id="gastos" class="seccion-admin" style="display:none;">
+  <h3>💸 Gastos</h3>
+ <select id="proveedorGasto">
+  <option value="">Seleccionar proveedor</option>
+</select>
+  <input type="text" id="descripcionGasto" placeholder="Descripción">
+  <input type="text" id="valorGasto" placeholder="Valor" oninput="formatearInput(this)">
+  <div></div>
+  <button onclick="guardarGasto(this)">Guardar gasto</button>
+  <button onclick="exportarGastosExcel(this)">📥 Excel</button>
+
+<h3 id="totalCostos">Total costos: $0</h3>
+  <div id="tablaGastos"></div>
+</div>
+<!-- 💰 COSTOS -->
+<div id="costos" class="seccion-admin" style="display:none;">
+  <h3>💰 Costos</h3>
+    <select id="proveedorCosto">
+  <option value="">Seleccionar proveedor</option>
+</select>
+  <input type="text" id="descripcionCosto" placeholder="Descripción">
+  <input type="text" id="valorCosto" placeholder="Valor" oninput="formatearInput(this)">
+  <div></div>
+  <button onclick="guardarCosto(this)">Guardar costo</button>
+
+  <h4>Total costos: $<span id="totalCostos">0</span></h4>
+
+  <div id="tablaCostos"></div>
+</div>
+
+<!-- Contactos -->
+
+<div id="contactos" class="seccion-admin" style="display:none;">
+
+  <h3>📇 Contactos</h3>
+
+  <div class="inventario-container">
+
+    <!-- 🔹 SUBMENÚ (IZQUIERDA) -->
+    <div class="inventario-menu">
+      <button id="btnProv" onclick="cambiarVistaContactos('proveedores')">🏢 Lista de proveedores</button>
+       <button id="btnCli" onclick="cambiarVistaContactos('clientes')">👤 Lista de clientes</button>
+       <button id="btnCrearProv" onclick="cambiarVistaContactos('crearProveedor')">➕ Crear proveedor</button>
+    </div>
+
+    <!-- 🔹 CONTENIDO (DERECHA) -->
+    <div class="inventario-contenido">
+
+      <!-- 📦 PROVEEDORES -->
+      <div id="vistaProveedores" class="vista-inventario" style="display:none;">
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>NIT</th>
+                <th>Razón Social</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+              </tr>
+            </thead>
+            <tbody id="tablaProveedores"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 👤 CLIENTES -->
+      <div id="vistaClientes" class="vista-inventario" style="display:none;">
+
+        <div class="tabla-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Cédula</th>
+                <th>✏️</th>
+              </tr>
+            </thead>
+            <tbody id="tablaClientes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ➕ CREAR PROVEEDOR -->
+      <div id="vistaCrearProveedor" class="vista-inventario" style="display:none;">
+
+        <input type="text" id="nitProv" placeholder="NIT">
+        <input type="text" id="razonProv" placeholder="Razón social">
+        <input type="text" id="direccionProv" placeholder="Dirección">
+        <input type="text" id="telefonoProv" placeholder="Teléfono">
+        <div></div>
+        <button onclick="guardarProveedor(this)">Guardar</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+<!-- ✏️ MODAL EDITAR CLIENTE -->
+<div id="modalCliente" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>✏️ Editar Cliente</h3>
+
+    <input type="text" id="editNombre" placeholder="Nombre">
+    <input type="text" id="editCedula" placeholder="Cédula">
+
+    <div class="modal-botones">
+      <button onclick="guardarClienteEditado(this)">💾 Guardar</button>
+      <button onclick="cerrarModalCliente(this)">❌ Cancelar</button>
+    </div>
+  </div>
+</div>
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh_0ZstqdGXhAOtMkRDoVfvbNCnAzTn5M",
+      authDomain: "prueba-f6e31.firebaseapp.com",
+      projectId: "prueba-f6e31",
+      storageBucket: "prueba-f6e31.firebasestorage.app",
+      messagingSenderId: "746312272239",
+      appId: "1:746312272239:web:d243e676fa8f1988fc409a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+    <script src="vendedor.js"></script>
+
+ 
+<div id="toast"></div>
+</body>
+</html>
