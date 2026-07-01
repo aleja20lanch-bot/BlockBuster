@@ -7,8 +7,7 @@ function mostrar(id, display) {
   if (el) el.style.display = display;
 }
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+
 
 // =====================
 // 🔐 LOGIN
@@ -57,13 +56,22 @@ function obtenerRol(uid) {
     setRol(rol);
   });
 }
+
 function setRol(rol) {
+
+  console.log("ROL DESDE FIREBASE:", rol);
+
+  rol = rol?.toLowerCase();
+
   mostrar("login", "none");
   mostrar("admin", "none");
   mostrar("ventas", "none");
 
   if (rol === "admin") {
     mostrar("admin", "block");
+
+    // cargar primera vista
+    mostrarSeccion("inventario");
   }
 
   if (rol === "vendedor") {
@@ -227,7 +235,19 @@ function actualizarCarrito() {
   </div>
   `;
 
-  document.getElementById("carrito").innerHTML = html;
+ const contenedor = document.getElementById("carrito");
+  contenedor.innerHTML = html;
+
+  // 🔥 AUTO SCROLL CORRECTO
+ setTimeout(() => {
+  const el = contenedor;
+
+  const necesitaScroll = el.scrollHeight > el.clientHeight;
+
+  if (necesitaScroll) {
+    el.scrollTop = el.scrollHeight;
+  }
+}, 0);
 }
 
 // =====================
@@ -495,9 +515,6 @@ if (input) {
   input.value = "";
   input.dispatchEvent(new Event("input")); // 🔥 recalcula cambio en vivo
 }
-function formatoMiles(valor) {
-  return Number(valor || 0).toLocaleString("es-CO");
-}
 //Filtrar productos 
 function filtrarProductos() {
   const input = document.getElementById("buscador");
@@ -526,25 +543,32 @@ function cargarProductos() {
     let html = "";
 
     snapshot.forEach(doc => {
+
       const p = doc.data();
 
-      // 🔥 validar datos
       if (!p.nombreProducto || !p.precio) return;
 
       const deshabilitado = p.activo === false;
 
+      let accion = "";
+
+      if (!deshabilitado) {
+        accion = `onclick="agregarProducto('${p.nombreProducto}', ${p.precio})"`;
+      }
+
       html += `
-        <button 
-          onclick="${deshabilitado ? '' : `agregarProducto('${p.nombreProducto}', ${p.precio})`}"
-          ${deshabilitado ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
-          
-          ${p.nombreProducto}<br>
-          $${formatoMiles(p.precio)}
+        <button ${accion}
+        ${deshabilitado ? 'disabled style="opacity:0.5"' : ''}>
+
+        ${p.nombreProducto}<br>
+        $${formatoMiles(p.precio)}
+
         </button>
       `;
     });
 
     contenedor.innerHTML = html;
+
   });
 }
 function limpiarAppVendedor() {
