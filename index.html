@@ -5,6 +5,11 @@
   <meta charset="UTF-8">
   <title>App Ventas</title>
   <link rel="stylesheet" href="styles.css">
+
+   <meta charset="UTF-8">
+  <title>App Ventas</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="logo.ico">
 </head>
 
 <body>
@@ -37,75 +42,13 @@
 <!---->
 <!--Vendedor-->
 <!---->
-  <!-- 🔹 CLIENTE (ARRIBA DE TODO) -->
-  <div class="cliente-top">
-    <div></div>
-    <div class="cliente-header">
-    👤 Datos del cliente
-  </div>
-<input 
-  type="text" 
-  id="nombreCliente" 
-  placeholder="Nombre cliente"
-  autocomplete="name"
-/>
 
-<input 
-  type="text" 
-  id="cedulaCliente" 
-  placeholder="Cédula"
-  autocomplete="off"
-/>
-  </div>
-
-  <!-- 🔹 IZQUIERDA (PRODUCTOS) -->
-  <div class="col-productos">
-    <h2>🛍 Productos</h2>
-
-    <input type="text" id="buscador" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
-    <div id="categoriasProductos" class="categorias-productos"></div>
-    <div id="listaProductos" class="productos-grid"></div>
-  </div>
-
-  <!-- 🔹 DERECHA (CARRITO + TODO) -->
-  <div class="col-carrito">
-
-    <h2>🛒 Carrito</h2>
-
-    <div id="carrito"></div>
-
-    <h2>Total: $<span id="total">0</span></h2>
-
-    <h3>💳 Método de pago</h3>
-
-    <select id="metodoPago" onchange="cambiarMetodoPago()">
-      <option value="">Seleccione</option>
-      <option value="efectivo">Efectivo</option>
-      <option value="nequi">Nequi</option>
-      <option value="tarjeta">Tarjeta</option>
-    </select>
-
-    <div id="pagoEfectivo" style="display:none;">
-      <div></div>
-      <label for="recibido"></label>
-<input
-  type="text"
-  id="recibido"
-  placeholder="Dinero recibido"
-  autocomplete="off"
-  oninput="formatearInput(this); calcularCambio()"
-/>
-      <p>💵 Cambio: $<span id="cambio">0</span></p>
-    
-    </div>
-<div></div>
-    <button onclick="guardarVenta(this)">💰 Finalizar venta</button>
-
-  </div>
-
+<!-- 🔹 CLIENTE (ARRIBA DE TODO) -->
 <button class="btn-cierre" onclick="cierreDelDia()">
   📊 Cierre del día
 </button>
+
+<!-- MODAL -->
 <div id="modalCierre" class="modal" style="display:none;">
   <div class="modal-contenido">
 
@@ -115,8 +58,93 @@
 
   </div>
 </div>
+
+<!-- DATOS CLIENTE -->
+<div class="cliente-top">
+
+  <div></div>
+
+  <div class="cliente-header">
+    👤 Datos del cliente
+  </div>
+
+  <input
+    type="text"
+    id="nombreCliente"
+    placeholder="Nombre cliente"
+    autocomplete="name"
+  >
+
+  <input
+    type="text"
+    id="cedulaCliente"
+    placeholder="Cédula"
+    autocomplete="off"
+  >
+
 </div>
 
+<!-- 🔹 IZQUIERDA (PRODUCTOS) -->
+<div class="col-productos">
+
+  <h2>🛡️ Productos</h2>
+
+  <input
+    type="text"
+    id="buscador"
+    placeholder="Buscar producto..."
+    onkeyup="filtrarProductos()"
+  >
+
+  <div id="categoriasProductos" class="categorias-productos"></div>
+
+  <div id="listaProductos" class="productos-grid"></div>
+
+</div>
+
+<div class="col-carrito">
+
+  <h2>🛒 Carrito</h2>
+
+  <div id="carrito"></div>
+
+  <h2>Total: $<span id="total">0</span></h2>
+
+  <div class="fila-pago">
+
+    <div class="campo-pago">
+      <h3>💳 Método de pago</h3>
+
+      <select id="metodoPago" onchange="cambiarMetodoPago()">
+        <option value="">Seleccione</option>
+        <option value="efectivo">Efectivo</option>
+        <option value="nequi">Nequi</option>
+        <option value="tarjeta">Tarjeta</option>
+      </select>
+    </div>
+
+    <div id="pagoEfectivo" class="campo-pago" style="display:none;">
+        <h3>💵 Dinero recibido</h3>
+      <input
+        type="text"
+        id="recibido"
+        placeholder="Dinero recibido"
+        autocomplete="off"
+        oninput="formatearInput(this); calcularCambio()"
+      >
+<p>💵 Cambio: $<span id="cambio">0</span></p>
+
+    </div>
+  </div>
+
+  
+
+  <button class="btn-finalizar" onclick="guardarVenta(this)">
+    💰 Finalizar venta
+  </button>
+
+</div>
+</div>
 <!---->
 <!--Administrador-->
 <!---->
@@ -147,7 +175,7 @@
     <!-- 🔹 SUBMENÚ -->
     <div class="inventario-menu">   
   <button id="btnVer" onclick="cambiarVistaInventario('ver')">📋 Ver inventario</button>
-  <button id="btnIngreso" onclick="cambiarVistaInventario('ingresar')">➕ Ingreso inventario</button>
+  <button id="btnIngreso" onclick="cambiarVistaInventario('ingresar')">+ Ingreso inventario</button>
   <button id="btnEditar" onclick="cambiarVistaInventario('editar')">✏️ Modificar inventario</button>
     </div>
 
@@ -163,6 +191,7 @@
               <th>Proveedor</th>
               <th>Fecha</th>
               <th>Categoría</th>
+              <th>OZ</th>
               <th>Nom. Producto</th>
               <th>SKU</th>
               <th>Cantidad</th>
@@ -179,11 +208,11 @@
       <div id="vistaIngresoInventario" class="vista-inventario" style="display:none;">
         
         <select id="proveedorInv">
-  <option value="">Seleccionar proveedor</option>
+  <option value="" selected disabled>Seleccionar proveedor</option>
 </select>
 <input type="date" id="fechaInv" onclick="this.showPicker()">
 <select id="categoriaInv">
-    <option value="" selected disabled>Categoría</option>
+    <option value="" selected disabled>Categoria</option>
   <option value="Granizados Cremosos">Granizados Cremosos</option>
   <option value="Jugos">Jugos</option>
   <option value="Smoothies">Smoothies</option>
@@ -191,6 +220,15 @@
   <option value="Malteadas">Malteadas</option>
   <option value="Sodas">Sodas</option>
   <option value="Extras">Extras</option>
+  <option value="Extras">Adicionales</option>
+
+</select>
+<label></label>
+<select id="ozInv">
+  <option value="" selected disabled>Seleccione OZ</option>
+  <option value="1 OZ">12 OZ</option>
+  <option value="2 OZ">16 OZ</option>
+  <option value="3 OZ">22 OZ</option>
 </select>
         <input type="text" id="nombreProducto" placeholder="Nombre del producto">
         <input type="text" id="skuInv" placeholder="SKU ejemplo (BB-001)">
@@ -214,7 +252,8 @@
             <tr>
               <th>Proveedor</th>
               <th>Fecha</th>
-              <th>Categoría</th>
+              <th>Categoria</th>
+              <th>OZ</th>
               <th>Nom. Producto</th>
               <th>SKU</th>
               <th>Cantidad</th>
@@ -280,7 +319,7 @@
   <div id="gastos" class="seccion-admin" style="display:none;">
   <h3>💸 Gastos</h3>
  <select id="proveedorGasto">
-  <option value="">Seleccionar proveedor</option>
+  <option value="" selected disabled>Seleccionar proveedor</option>
 </select>
   <input type="text" id="descripcionGasto" placeholder="Descripción">
   <input type="text" id="valorGasto" placeholder="Valor" oninput="formatearInput(this)">
@@ -295,7 +334,7 @@
 <div id="costos" class="seccion-admin" style="display:none;">
   <h3>💰 Costos</h3>
     <select id="proveedorCosto">
-  <option value="">Seleccionar proveedor</option>
+  <option value="" selected disabled>Seleccionar proveedor</option>
 </select>
   <input type="text" id="descripcionCosto" placeholder="Descripción">
   <input type="text" id="valorCosto" placeholder="Valor" oninput="formatearInput(this)">
