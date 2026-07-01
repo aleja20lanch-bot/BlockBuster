@@ -311,6 +311,7 @@ async function guardarInventario(btn) {
     const proveedor = document.getElementById("proveedorInv").value;
     const fecha = document.getElementById("fechaInv").value;
     const categoria = document.getElementById("categoriaInv").value;
+    const oz = document.getElementById("ozInv").value;
     const nombreProducto = document.getElementById("nombreProducto").value;
     const sku = document.getElementById("skuInv").value;
 
@@ -326,8 +327,8 @@ async function guardarInventario(btn) {
     venta = Number(venta.replace(/\./g, "")) || 0;
 
     // 🔍 VALIDACIONES
-   if (!proveedor || !fecha || !categoria || !sku || !nombreProducto) {
-  mostrarMensaje("Completa los campos");
+if (!proveedor || !fecha || !categoria || !oz || !sku || !nombreProducto) {
+    mostrarMensaje("Completa los campos");
   return;
 }
 
@@ -341,6 +342,7 @@ async function guardarInventario(btn) {
           nombreProducto,
           fecha,
           categoria,
+          oz,
           sku,
           cantidad,
           costoUnitario,
@@ -358,6 +360,7 @@ async function guardarInventario(btn) {
         nombreProducto,
         fecha,
         categoria,
+        oz,
         sku,
         cantidad,
         costoUnitario,
@@ -402,6 +405,7 @@ async function guardarInventario(btn) {
     document.getElementById("proveedorInv").value = "";
     document.getElementById("fechaInv").value = "";
     document.getElementById("categoriaInv").value = "";
+    document.getElementById("ozInv").value = "";
     document.getElementById("nombreProducto").value = "";
     document.getElementById("skuInv").value = "";
     document.getElementById("cantidadInv").value = "";
@@ -437,6 +441,7 @@ function cargarVerInventario() {
     <td>${i.proveedor}</td>
     <td>${i.fecha}</td>
     <td>${i.categoria || "-"}</td>
+    <td>${i.oz || "-"}</td>
     <td>${i.nombreProducto || "-"}</td>
     <td>${i.sku}</td>
     <td>${i.cantidad}</td>
@@ -470,6 +475,7 @@ async function editarInventario(id) {
     document.getElementById("proveedorInv").value = i.proveedor;
     document.getElementById("fechaInv").value = i.fecha;
 document.getElementById("categoriaInv").value = i.categoria || "";
+document.getElementById("ozInv").value = i.oz || "";
     document.getElementById("nombreProducto").value = i.nombreProducto;
     document.getElementById("skuInv").value = i.sku;
     document.getElementById("cantidadInv").value = i.cantidad;
@@ -496,6 +502,7 @@ function cargarEditarInventario() {
           <td>${i.proveedor}</td>
           <td>${i.fecha}</td>
 <td>${i.categoria || "-"}</td>
+  <td>${i.oz || "-"}</td>
 <td>${i.nombreProducto || "-"}</td>
           <td>${i.sku}</td>
           <td>${i.cantidad}</td>
@@ -632,7 +639,7 @@ function cargarProveedoresLista() {
 }
 function cargarClientes() {
   db.collection("clientes").get().then(snapshot => {
-    let html = "";0.
+    let html = "";
 
     snapshot.forEach(doc => {
       const c = doc.data();
