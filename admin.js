@@ -914,7 +914,7 @@ async function guardarCosto(btn) {
     const textoOriginal = btn.innerHTML;
     btn.innerHTML = '<span class="loader"></span> Guardando...';
 
-    const proveedor = document.getElementById("proveedorCostos").value;
+    const proveedor = document.getElementById("proveedorCosto").value;
     const descripcion = document.getElementById("descripcionCosto").value;
     let valor = document.getElementById("valorCosto").value;
 
@@ -936,7 +936,7 @@ async function guardarCosto(btn) {
     mostrarMensaje("Costo guardado ✅");
 
     // 🧹 limpiar
-    document.getElementById("proveedorCostos").value = "";
+    document.getElementById("proveedorCosto").value = "";
     document.getElementById("descripcionCosto").value = "";
     document.getElementById("valorCosto").value = "";
 
