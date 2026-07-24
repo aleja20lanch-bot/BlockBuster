@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blockbuster · POS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="logo.ico">
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <img src="logo.png" class="logo" alt="Blockbuster">
+    <button id="btnLogout" onclick="logout()" class="btn-logout" style="display:none;">
+      Cerrar sesión
+    </button>
+  </header>
+
+  <!-- LOGIN -->
+  <div id="login">
+    <h2>Iniciar sesión</h2>
+    <input type="email" id="email" placeholder="Correo" autocomplete="email" />
+    <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password">
+    <button onclick="login()">Ingresar</button>
+  </div>
+
+  <div id="ventas" class="ventas-layout" style="display:none;">
+
+    <button class="btn-cierre" onclick="cierreDelDia()">
+      📊 Cierre del día
+    </button>
+
+    <div id="modalCierre" class="modal" style="display:none;">
+      <div class="modal-contenido">
+        <div id="resultadoCierre"></div>
+        <div class="modal-botones">
+          <button onclick="guardarCierreCaja(this)">💾 Guardar cierre</button>
+          <button onclick="cerrarCierre()">Cerrar sin guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cliente-top">
+      <div class="cliente-header">
+        👤 Datos del cliente
+      </div>
+      <input type="text" id="nombreCliente" placeholder="Nombre cliente" autocomplete="name">
+      <input type="text" id="cedulaCliente" placeholder="Cédula" autocomplete="off">
+    </div>
+
+    <div class="col-productos">
+      <h2>🛡️ Productos</h2>
+      <input type="text" id="buscador" placeholder="Buscar producto..." onkeyup="filtrarProductos()">
+      <div id="categoriasProductos" class="categorias-productos"></div>
+      <div id="listaProductos" class="productos-grid"></div>
+    </div>
+
+    <div class="col-carrito">
+      <h2>🛒 Carrito</h2>
+      <div id="carrito"></div>
+      <h2>Total: $<span id="total">0</span></h2>
+
+      <div class="fila-pago">
+        <div class="campo-pago">
+          <h3>💳 Método de pago</h3>
+          <select id="metodoPago" onchange="cambiarMetodoPago()">
+            <option value="">Seleccione</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="nequi">Nequi</option>
+            <option value="tarjeta">Tarjeta</option>
+          </select>
+        </div>
+
+        <div id="pagoEfectivo" class="campo-pago" style="display:none;">
+          <h3>💵 Dinero recibido</h3>
+          <input type="text" id="recibido" placeholder="Dinero recibido" autocomplete="off" oninput="formatearInput(this); calcularCambio()">
+          <p>💵 Cambio: $<span id="cambio">0</span></p>
+        </div>
+      </div>
+
+      <div class="acciones-carrito">
+        <button class="btn-vaciar" onclick="vaciarCarrito()">🗑 Vaciar carrito</button>
+        <button class="btn-finalizar" onclick="guardarVenta(this)">💰 Finalizar venta</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin" class="admin-panel" style="display:none;">
+
+    <h2>📊 Panel Admin</h2>
+
+    <div class="admin-shell">
+
+      <nav class="admin-menu">
+        <button id="btnInventario" onclick="mostrarSeccion('inventario')">📦 Inventario</button>
+        <button id="btnVentas" onclick="mostrarSeccion('ventasHoy')">📊 Ventas del día</button>
+        <button id="btnReporte" onclick="mostrarSeccion('reporte')">📅 Reporte mensual</button>
+        <button id="btnGastos" onclick="mostrarSeccion('gastos')">💸 Gastos</button>
+        <button id="btnCostos" onclick="mostrarSeccion('costos')">💰 Costos</button>
+        <button id="btnContactos" onclick="mostrarSeccion('contactos')">📇 Contactos</button>
+        <button id="btnCierres" onclick="mostrarSeccion('cierres')">🔒 Cierres de caja</button>
+        <button id="btnAlertas" onclick="mostrarSeccion('alertas')">
+          🔔 Alertas de stock
+          <span id="badgeAlertas" style="display:none;background:var(--peligro);color:white;border-radius:999px;padding:1px 7px;font-size:11px;margin-left:6px;"></span>
+        </button>
+      </nav>
+
+      <div class="admin-content">
+
+        <div id="inventario" class="seccion-admin">
+          <h3>📦 Inventario</h3>
+          <div class="inventario-container">
+            <div class="inventario-menu">
+              <button id="btnVer" onclick="cambiarVistaInventario('ver')">📋 Ver inventario</button>
+              <button id="btnIngreso" onclick="cambiarVistaInventario('ingresar')">+ Ingreso inventario</button>
+              <button id="btnEditar" onclick="cambiarVistaInventario('editar')">✏️ Modificar inventario</button>
+              <button id="btnTrazabilidad" onclick="cambiarVistaInventario('trazabilidad')">📜 Trazabilidad</button>
+            </div>
+
+            <div class="inventario-contenido">
+
+              <div id="vistaVerInventario" class="vista-inventario" style="display:none;">
+                <div class="toolbar-inventario">
+                  <input type="text" id="buscarInventario" placeholder="🔍 Buscar producto..." onkeyup="cargarVerInventario()">
+                  <select id="filtroCategoriaInventario" onchange="cargarVerInventario()">
+                    <option value="">Todas las categorías</option>
+                  </select>
+                  <select id="filtroProveedorInventario" onchange="cargarVerInventario()">
+                    <option value="">Todos los proveedores</option>
+                  </select>
+                  <button onclick="exportarInventarioExcel()">📥 Excel</button>
+                </div>
+                <h4>Total unidades en inventario: <span id="totalUnidadesInventario">0</span></h4>
+                <div class="tabla-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th><th>Proveedor</th><th>Fecha</th><th>Categoría</th>
+                        <th>Nom. Producto</th><th>SKU</th><th>Cantidad</th>
+                        <th>Costo Unitario</th><th>Total Costo</th><th>Venta Unitaria</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tablaVerInventario"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="vistaIngresoInventario" class="vista-inventario" style="display:none;">
+                <select id="proveedorInv"><option value="" selected disabled>Seleccionar proveedor</option></select>
+                <select id="categoriaInv"><option value="" selected disabled>Seleccionar categoría</option></select>
+                <input type="text" id="nombreProducto" placeholder="Nombre del producto">
+                <input type="text" id="skuInv" placeholder="SKU (autogenerado)" readonly>
+                <input type="date" id="fechaInv">
+                <input type="number" id="cantidadInv" placeholder="Cantidad">
+                <input type="text" id="costoUnitarioInv" placeholder="Costo unitario (usa , para centavos)">
+                <input type="text" id="totalCostoInv" placeholder="Total costo" readonly>
+                <input type="text" id="ventaUnitariaInv" placeholder="Venta unitaria (usa , para centavos)">
+                <div></div>
+                <button onclick="guardarInventario(this)">Guardar</button>
+              </div>
+
+              <div id="vistaEditarInventario" class="vista-inventario" style="display:none;">
+                <div class="toolbar-inventario">
+                  <input type="text" id="buscarEditarInventario" placeholder="🔍 Buscar producto..." onkeyup="cargarEditarInventario()">
+                  <select id="filtroCategoriaEditarInventario" onchange="cargarEditarInventario()">
+                    <option value="">Todas las categorías</option>
+                  </select>
+                </div>
+                <div class="tabla-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th><th>Proveedor</th><th>Fecha</th><th>Categoria</th>
+                        <th>Nom. Producto</th><th>SKU</th><th>Cantidad</th>
+                        <th>Costo Unitario</th><th>Total Costo</th><th>Venta Unitaria</th><th>Editar</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tablaEditarInventario"></tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div id="vistaTrazabilidad" class="vista-inventario" style="display:none;">
+            <div class="toolbar-inventario">
+              <input type="text" id="buscarTrazabilidad" placeholder="🔍 Buscar producto..." onkeyup="cargarTrazabilidad()">
+              <select id="filtroTipoTrazabilidad" onchange="cargarTrazabilidad()">
+                <option value="">Todos los movimientos</option>
+                <option value="ingreso">📥 Solo ingresos</option>
+                <option value="venta">📤 Solo ventas</option>
+              </select>
+            </div>
+            <div class="tabla-scroll">
+              <table>
+                <thead>
+                  <tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Referencia (SKU)</th></tr>
+                </thead>
+                <tbody id="tablaTrazabilidad"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <div id="ventasHoy" class="seccion-admin" style="display:none;">
+          <h3>📊 Ventas del día</h3>
+          <div class="toolbar-inventario">
+            <input type="text" id="buscarIdVentaImprimir" placeholder="🖨️ Buscar por ID de venta (VT-00045)">
+            <button onclick="buscarEImprimirRecibo()">🖨️ Imprimir</button>
+            <select id="filtroMetodoVentasHoy" onchange="cargarVentasHoy()">
+              <option value="">Todos los métodos</option>
+              <option value="efectivo">Efectivo</option>
+              <option value="nequi">Nequi</option>
+              <option value="tarjeta">Tarjeta</option>
+            </select>
+            <button onclick="exportarVentasHoyExcel()">📥 Excel</button>
+          </div>
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Transacción</th><th>Productos</th><th>Descuento</th>
+                  <th>Total</th><th>Método</th><th>Hora</th><th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tablaVentasHoy"></tbody>
+            </table>
+          </div>
+          <h4>Total del día: $<span id="totalHoy">0</span></h4>
+        </div>
+
+        <div id="reporte" class="seccion-admin" style="display:none;">
+          <h3>📅 Reporte mensual</h3>
+          <div class="filtro-fechas">
+            <div class="campo-fecha">
+              <label for="fechaInicio">📅 Fecha inicio</label>
+              <input type="date" id="fechaInicio" onclick="this.showPicker()">
+            </div>
+            <div class="campo-fecha">
+              <label for="fechaFin">📅 Fecha fin</label>
+              <input type="date" id="fechaFin" onclick="this.showPicker()">
+            </div>
+            <button onclick="reportePorFechas(this)">📊 Generar reporte</button>
+            <button onclick="exportarReporteExcel()">📥 Excel</button>
+          </div>
+          <div id="tablaReporte" class="tabla-scroll"></div>
+        </div>
+
+        <div id="gastos" class="seccion-admin" style="display:none;">
+          <h3>💸 Gastos</h3>
+          <select id="proveedorGasto"><option value="" selected disabled>Seleccionar proveedor</option></select>
+          <input type="text" id="descripcionGasto" placeholder="Descripción">
+          <input type="text" id="valorGasto" placeholder="Valor (usa , para centavos)" oninput="formatearInputDecimal(this)">
+          <div></div>
+          <button onclick="guardarGasto(this)">Guardar gasto</button>
+          <button onclick="exportarGastosExcel(this)">📥 Excel</button>
+          <div id="tablaGastos"></div>
+        </div>
+
+        <div id="costos" class="seccion-admin" style="display:none;">
+          <h3>💰 Costos</h3>
+
+          <div class="toolbar-inventario">
+            <select id="proveedorCosto"><option value="" selected disabled>Seleccionar proveedor</option></select>
+            <input type="text" id="descripcionCosto" placeholder="Descripción">
+            <input type="text" id="valorCosto" placeholder="Valor (usa , para centavos)" oninput="formatearInputDecimal(this)">
+          </div>
+
+          <button onclick="guardarCosto(this)">Guardar costo</button>
+
+          <div class="toolbar-inventario toolbar-nowrap" style="margin-top:16px;">
+            <input type="text" id="buscarCostos" placeholder="🔍 Buscar producto, proveedor, SKU o ID..." onkeyup="cargarCostos()">
+            <select id="filtroProveedorCostos" onchange="cargarCostos()">
+              <option value="">Todos los proveedores</option>
+            </select>
+            <label style="font-size:12.5px;color:var(--texto-suave);white-space:nowrap;margin:0;">Desde</label>
+            <input type="date" id="fechaInicioCostos" onchange="cargarCostos()" style="width:auto;">
+            <label style="font-size:12.5px;color:var(--texto-suave);white-space:nowrap;margin:0;">Hasta</label>
+            <input type="date" id="fechaFinCostos" onchange="cargarCostos()" style="width:auto;">
+            <button onclick="limpiarFiltrosCostos()">✖️ Limpiar</button>
+            <button onclick="verificarCostosFaltantes()">🔍 Verificar costos</button>
+            <button onclick="abrirCostosAmpliado()">🔎 Ver ampliado</button>
+          </div>
+
+          <div id="resultadoVerificacionCostos"></div>
+
+          <h4>Total costos: $<span id="totalCostos">0</span></h4>
+
+          <div id="tablaCostos"></div>
+        </div>
+
+        <div id="contactos" class="seccion-admin" style="display:none;">
+          <h3>📇 Contactos</h3>
+          <div class="inventario-container">
+            <div class="inventario-menu">
+              <button id="btnProv" onclick="cambiarVistaContactos('proveedores')">🏢 Lista de proveedores</button>
+              <button id="btnCli" onclick="cambiarVistaContactos('clientes')">👤 Lista de clientes</button>
+              <button id="btnCrearProv" onclick="cambiarVistaContactos('crearProveedor')">➕ Crear proveedor</button>
+              <button id="btnCat" onclick="cambiarVistaContactos('categorias')"> 🏷️ Categorías</button>
+              <button id="btnUsr" onclick="cambiarVistaContactos('usuarios')">👤 Usuarios</button>
+            </div>
+
+            <div class="inventario-contenido">
+
+              <div id="vistaProveedores" class="vista-inventario" style="display:none;">
+                <div class="tabla-scroll">
+                  <table>
+                    <thead><tr><th>NIT</th><th>Razón Social</th><th>Dirección</th><th>Teléfono</th></tr></thead>
+                    <tbody id="tablaProveedores"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="vistaClientes" class="vista-inventario" style="display:none;">
+                <div class="tabla-scroll">
+                  <table>
+                    <thead><tr><th>Nombre</th><th>Cédula</th><th>Acción</th></tr></thead>
+                    <tbody id="tablaClientes"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="vistaCrearProveedor" class="vista-inventario" style="display:none;">
+                <input type="text" id="nitProv" placeholder="NIT">
+                <input type="text" id="razonProv" placeholder="Razón social">
+                <input type="text" id="direccionProv" placeholder="Dirección">
+                <input type="text" id="telefonoProv" placeholder="Teléfono">
+                <div></div>
+                <button onclick="guardarProveedor(this)">Guardar</button>
+              </div>
+
+              <div id="vistaCategorias" class="vista-contactos" style="display:none;">
+                <div class="toolbar-inventario">
+                  <input type="text" id="nombreCategoria" placeholder="Nombre de la nueva categoría">
+                  <button onclick="guardarCategoria(this)">➕ Agregar categoría</button>
+                </div>
+                <div class="tabla-scroll">
+                  <table>
+                    <thead><tr><th>Categoría</th><th>Eliminar</th></tr></thead>
+                    <tbody id="tablaCategorias"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="vistaUsuarios" class="vista-contactos" style="display:none;">
+                <div class="toolbar-inventario">
+                  <input type="email" id="correoUsuario" placeholder="Correo del nuevo usuario" autocomplete="off">
+                  <input type="password" id="passwordUsuario" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="new-password">
+                  <select id="rolUsuario">
+                    <option value="" selected disabled>Seleccionar rol</option>
+                    <option value="vendedor">Vendedor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <button onclick="crearUsuarioVendedor(this)">➕ Crear usuario</button>
+                </div>
+                <div class="tabla-scroll">
+                  <table>
+                    <thead><tr><th>Correo</th><th>Rol</th><th>Acción</th></tr></thead>
+                    <tbody id="tablaUsuarios"></tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div id="cierres" class="seccion-admin" style="display:none;">
+          <h3>🔒 Cierres de caja</h3>
+          <div class="tabla-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Cierre</th><th>Fecha</th><th>Total sistema</th>
+                  <th>Efectivo sistema</th><th>Efectivo contado</th><th>Diferencia</th><th>Observaciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaCierres"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="alertas" class="seccion-admin" style="display:none;">
+          <h3>🔔 Alertas de stock</h3>
+          <div style="display:flex;gap:20px;flex-wrap:wrap;flex-shrink:0;margin-bottom:14px;">
+            <div style="flex:1;min-width:200px;">
+              <h4 style="color:var(--peligro);">🚫 Agotados (<span id="contadorAgotados">0</span>)</h4>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <h4 style="color:#fbbf24;">⚠️ Stock bajo (<span id="contadorBajos">0</span>)</h4>
+            </div>
+          </div>
+          <div style="display:flex;gap:20px;flex:1;min-height:0;">
+            <div class="tabla-scroll" style="flex:1;">
+              <table>
+                <thead><tr><th>Producto</th><th>Categoría</th><th>Estado</th></tr></thead>
+                <tbody id="tablaAgotados"></tbody>
+              </table>
+            </div>
+            <div class="tabla-scroll" style="flex:1;">
+              <table>
+                <thead><tr><th>Producto</th><th>Categoría</th><th>Stock</th></tr></thead>
+                <tbody id="tablaBajos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="modalCliente" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>✏️ Editar Cliente</h3>
+      <input type="text" id="editNombre" placeholder="Nombre">
+      <input type="text" id="editCedula" placeholder="Cédula">
+      <div class="modal-botones">
+        <button onclick="guardarClienteEditado(this)">💾 Guardar</button>
+        <button onclick="cerrarModalCliente(this)">❌ Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalHistorialCliente" class="modal" style="display:none;">
+    <div class="modal-contenido" style="width:600px;max-width:90vw;">
+      <h3>📜 Historial de compras</h3>
+      <p id="clienteHistorialNombre" style="color:var(--texto-suave);margin-bottom:12px;"></p>
+      <div class="tabla-scroll" style="max-height:360px;">
+        <table>
+          <thead><tr><th>Fecha</th><th>ID Venta</th><th>Productos</th><th>Total</th><th>Método</th></tr></thead>
+          <tbody id="tablaHistorialCliente"></tbody>
+        </table>
+      </div>
+      <h4 style="margin-top:12px;">Total histórico: $<span id="totalHistoricoCliente">0</span></h4>
+      <button onclick="cerrarModalHistorialCliente()">Cerrar</button>
+    </div>
+  </div>
+
+  <div id="modalCostosAmpliado" class="modal" style="display:none;">
+    <div class="modal-contenido" style="width:92vw;max-width:1400px;height:88vh;display:flex;flex-direction:column;text-align:left;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-shrink:0;margin-bottom:10px;">
+        <h3 style="margin:0;">💰 Costos (vista ampliada)</h3>
+        <button onclick="cerrarCostosAmpliado()">✖️ Cerrar</button>
+      </div>
+      <div id="tablaCostosAmpliado" style="flex:1;min-height:0;overflow-y:auto;overflow-x:auto;border-radius:var(--radio);border:1px solid var(--border-soft);"></div>
+    </div>
+  </div>
+
+  <div id="modalConfirmar" class="modal" style="display:none;">
+    <div class="modal-contenido">
+      <p id="mensajeConfirmar"></p>
+      <div class="modal-botones">
+        <button id="btnConfirmarAceptar" class="btn-modal-aceptar">Aceptar</button>
+        <button id="btnConfirmarCancelar" class="btn-modal-cancelar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDh_0ZstqdGXhAOtMkRDoVfvbNCnAzTn5M",
+      authDomain: "prueba-f6e31.firebaseapp.com",
+      projectId: "prueba-f6e31",
+      storageBucket: "prueba-f6e31.firebasestorage.app",
+      messagingSenderId: "746312272239",
+      appId: "1:746312272239:web:d243e676fa8f1988fc409a"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+  <script src="vendedor.js"></script>
+
+  <div id="toast"></div>
+</body>
+</html>

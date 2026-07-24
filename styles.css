@@ -1,0 +1,1284 @@
+/* ==================================================================
+    BlockBuster · POS — HOJA DE ESTILOS
+   ------------------------------------------------------------------
+   Índice:
+     1. Variables globales
+     2. Reset y tipografía base
+     3. Utilidades generales (botones, inputs, tablas, modal, toast)
+     4. Header y Login
+     5. Sección ADMINISTRADOR
+     6. Sección VENDEDOR (punto de venta)
+     7. Responsive (móvil)
+   ================================================================== */
+
+
+/* ==================================================================
+   1. VARIABLES GLOBALES
+   ================================================================== */
+:root {
+  /* Marca — Blockbuster (navy + dorado, inspirado en el logo) */
+  --bg: #060b16;
+  --bg-alt: #0b1424;
+  --surface: #0f1b30;
+  --surface-2: #17233d;
+  --border: #2a3a5c;
+  --border-soft: #22304c;
+
+  --violeta: #866b12;        /* dorado medio — bordes, hover, iconos */
+  --violeta-fuerte: #866b12; /* dorado oscuro — degradados fuertes */
+  --magenta: #866b12;        /* dorado brillante — segundo tono de degradado */
+  --acento: #866b12;         /* dorado vivo — títulos, botones, insignias */
+
+  --texto: #f5f3ec;
+  --texto-suave: #b9c2d6;
+  --texto-tenue: #7c8aa8;
+
+  --exito: #22c55e;
+  --advertencia: #866b12;
+  --peligro: #f43f5e;
+
+  --radio-sm: 8px;
+  --radio: 12px;
+  --radio-lg: 18px;
+
+  --sombra: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --sombra-acento: 0 0 0 1px var(--border), 0 8px 24px rgba(212, 175, 55, 0.18);
+
+  --header-height: 96px;
+
+  --fuente-display: "Sora", "Segoe UI", sans-serif;
+  --fuente-base: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+
+/* ==================================================================
+   2. RESET Y TIPOGRAFÍA BASE
+   ================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente-base);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--texto);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(139, 63, 214, 0.16), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(192, 38, 211, 0.10), transparent 40%),
+    var(--bg);
+  overflow: auto;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--fuente-display);
+  color: var(--texto);
+  text-shadow: none;
+  letter-spacing: 0.2px;
+  margin: 0 0 6px 0;
+}
+
+h2 { font-size: 19px; }
+h3 { font-size: 16px; color: var(--acento); }
+h4 { font-size: 14px; color: var(--texto-suave); font-weight: 600; }
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+::selection {
+  background: var(--violeta);
+  color: white;
+}
+
+/* Scrollbars discretos */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--violeta); }
+
+
+/* ==================================================================
+   3. UTILIDADES GENERALES (compartidas por Admin y Vendedor)
+   ================================================================== */
+
+/* --- Botones --- */
+button {
+  font-family: var(--fuente-base);
+  background: var(--surface-2);
+  color: var(--texto);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  margin: 4px 0;
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: var(--radio-sm);
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+button:hover {
+  border-color: var(--violeta);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Botón de acción principal (guardar, finalizar, generar) */
+button[onclick*="guardar"],
+button[onclick*="Guardar"],
+button[onclick*="finalizar"],
+button[onclick*="reportePorFechas"],
+button[onclick*="login"] {
+  background: linear-gradient(135deg, var(--violeta), var(--magenta));
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 14px rgba(139, 63, 214, 0.35);
+}
+
+button[onclick*="guardar"]:hover,
+button[onclick*="Guardar"]:hover,
+button[onclick*="finalizar"]:hover,
+button[onclick*="reportePorFechas"]:hover,
+button[onclick*="login"]:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.loader {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Inputs y selects --- */
+input, select {
+  width: 40%;
+  font-family: var(--fuente-base);
+  font-size: 14px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--texto);
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+input::placeholder {
+  color: var(--texto-tenue);
+}
+
+input:focus, select:focus {
+  border-color: var(--violeta);
+  box-shadow: 0 0 0 3px rgba(139, 63, 214, 0.25);
+}
+
+input[readonly] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+select option {
+  background: var(--surface);
+  color: var(--texto);
+}
+
+/* --- Tablas --- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+th, td {
+  border: 1px solid var(--border-soft);
+  padding: 9px 10px;
+  text-align: center;
+}
+
+th {
+  background: var(--surface-2);
+  color: var(--acento);
+  font-family: var(--fuente-display);
+  font-weight: 600;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+tbody tr:hover {
+  background: rgba(139, 63, 214, 0.10);
+}
+
+.tabla-scroll {
+  flex: 1;
+  overflow: auto;
+  border-radius: var(--radio);
+  border: 1px solid var(--border-soft);
+  min-height: 0;
+}
+
+.tabla-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-alt);
+}
+
+/* --- Modal genérico --- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 6, 14, 0.72);
+  backdrop-filter: blur(2px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content,
+.modal-contenido {
+  background: var(--surface);
+  padding: 26px;
+  border-radius: var(--radio-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--sombra), 0 0 30px rgba(139, 63, 214, 0.15);
+  width: 340px;
+  text-align: center;
+}
+
+.modal-content input {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--border);
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  gap: 10px;
+}
+
+.modal-botones button {
+  flex: 1;
+  margin: 0;
+}
+
+/* Modal de confirmación */
+#modalConfirmar .modal-contenido {
+  max-width: 360px;
+}
+
+#mensajeConfirmar {
+  font-size: 15px;
+  color: var(--texto);
+  margin: 4px 0 18px 0;
+  line-height: 1.5;
+}
+
+.btn-modal-aceptar {
+  background: linear-gradient(135deg, var(--violeta), var(--magenta));
+  border-color: transparent;
+  color: white;
+}
+
+.btn-modal-cancelar {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.btn-modal-cancelar:hover {
+  background: var(--surface-2);
+}
+
+/* --- Toast de notificación --- */
+#toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  background: var(--surface-2);
+  color: var(--texto);
+  padding: 16px 26px;
+  border-radius: var(--radio);
+  border: 1px solid var(--violeta);
+  box-shadow: 0 0 24px rgba(139, 63, 214, 0.35);
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s ease;
+  z-index: 9999;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+
+/* ==================================================================
+   4. HEADER Y LOGIN
+   ================================================================== */
+.header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(circle at 6px 6px, rgba(255, 255, 255, 0.05) 1px, transparent 1.5px) 0 0 / 14px 14px,
+    linear-gradient(120deg, var(--violeta-fuerte), var(--magenta));
+  padding: 10px 16px;
+  flex-wrap: wrap;
+  height: var(--header-height);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.logo {
+  height: 76px;
+  max-width: 200px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.btn-logout {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  padding: 9px 16px;
+  border-radius: var(--radio-sm);
+}
+
+/* Botón estático: se anula el translateY(-1px) del hover genérico de <button> */
+.btn-logout:hover,
+.btn-logout:active {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: white;
+  transform: translateY(-50%);
+}
+
+#login {
+  background: var(--surface);
+  padding: 34px 30px;
+  border-radius: var(--radio-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--sombra), 0 0 40px rgba(139, 63, 214, 0.12);
+  max-width: 380px;
+  margin: 70px auto;
+  text-align: center;
+}
+
+#login h2 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+#login h2::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin: 12px auto 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--violeta), var(--magenta));
+}
+
+#login input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+}
+
+#login button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+
+/* ==================================================================
+   5. SECCIÓN ADMINISTRADOR
+   ================================================================== */
+.admin-panel {
+  height: calc(100vh - var(--header-height));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.admin-panel > h2 {
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.admin-shell {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+/* Menú lateral del admin */
+.admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radio);
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.admin-menu button {
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.admin-menu button:hover {
+  background: var(--surface-2);
+}
+
+.admin-menu button.activo {
+  background: linear-gradient(135deg, var(--violeta), var(--magenta));
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(139, 63, 214, 0.3);
+  transform: none;
+}
+
+/* Contenido del admin */
+.admin-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radio);
+  padding: 18px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.seccion-admin {
+  margin-top: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.seccion-admin > h3 {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+
+/* Inventario y Contactos: estas dos secciones manejan su propio scroll
+   interno (tabla), así que la sección misma no debe scrollear —
+   evita la doble barra de scroll. */
+#inventario,
+#contactos {
+  overflow: hidden;
+}
+
+/* Inventario: submenú interno + contenido */
+.inventario-container {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+.inventario-menu {
+  width: 190px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.inventario-menu button {
+  padding: 10px;
+  cursor: pointer;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.inventario-menu button.active {
+  background: var(--violeta);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0 10px rgba(139, 63, 214, 0.4);
+}
+
+.inventario-contenido {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Vista activa dentro de Inventario/Contactos: ocupa todo el alto
+   disponible; si tiene tabla, la tabla es la que scrollea (.tabla-scroll);
+   si no (ej. formularios cortos), se deja un scroll de respaldo para
+   que nada quede cortado en pantallas bajas. */
+.vista-inventario,
+.vista-contactos {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.vista-inventario input,
+.vista-inventario select {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.vista-inventario > button {
+  margin-top: 10px;
+  width: auto;
+  padding: 10px 22px;
+}
+
+.toolbar-inventario,
+.vista-inventario > h4 {
+  flex-shrink: 0;
+}
+
+/* Barra de búsqueda + filtro de categoría */
+.toolbar-inventario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.toolbar-inventario input,
+.toolbar-inventario select {
+  width: auto;
+  flex: 1 1 220px;
+  margin-top: 0;
+}
+
+/* Formularios de ingreso (grid ordenado).
+   admin.js ahora limpia el estilo en línea al mostrar estas vistas
+   (style.display = ""), por lo que esta regla se aplica sin conflictos
+   y el "display:none" de ocultar sigue funcionando con normalidad.
+   El id tiene más especificidad que .vista-inventario, así que estas
+   vistas cortas (sin tabla) quedan en grid, no en flex column. */
+#vistaIngresoInventario,
+#vistaCrearProveedor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  align-content: start;
+  align-items: start;
+  flex: 0 1 auto;
+  gap: 14px 20px;
+  max-width: 720px; /* formularios cortos: sí tiene sentido limitar el ancho */
+  overflow-y: auto; /* respaldo por si la pantalla es muy baja */
+}
+
+/* Gastos y Costos tienen una tabla ancha adentro (no deben compartir el
+   max-width:720px de los formularios cortos de arriba — ese límite era
+   la causa de que la tabla se viera fija en 720px sin importar el tamaño
+   real de la pantalla).
+   Se usa flex-column en vez de grid: así la tabla puede quedarse con
+   "flex:1" y ocupar EXACTAMENTE el espacio vertical que sobra dentro
+   del panel, sin importar cuántos campos/filtros haya arriba — con grid
+   habría que contar filas a mano y se rompe apenas se agrega o quita
+   un bloque (como pasó con el de verificación de faltantes). */
+#gastos,
+#costos {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
+
+#gastos .toolbar-inventario,
+#costos .toolbar-inventario {
+  flex-wrap: wrap;
+}
+
+/* El bloque de verificación de faltantes es dinámico y puede crecer mucho
+   (varios lotes). En vez de dejar que empuje todo el panel (y quede cortado
+   por el overflow:hidden del contenedor padre), tiene su propio scroll
+   acotado — así sigue habiendo un único punto de scroll visible a la vez. */
+#costos #resultadoVerificacionCostos {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+#costos #resultadoVerificacionCostos:empty {
+  max-height: none;
+  overflow: visible;
+}
+
+#vistaIngresoInventario input,
+#vistaIngresoInventario select,
+#gastos input,
+#gastos select,
+#costos input,
+#costos select,
+#vistaCrearProveedor input {
+  width: 100%;
+  margin-top: 0;
+}
+
+#vistaIngresoInventario > button,
+#gastos > button,
+#costos > button,
+#vistaCrearProveedor > button {
+  width: auto;
+  justify-self: start;
+  padding: 10px 24px;
+}
+
+#gastos #tablaGastos,
+#costos #tablaCostos {
+  margin-top: 8px;
+  flex: 1;         /* 🔑 ocupa exactamente el espacio vertical que sobra */
+  min-height: 120px; /* nunca queda tan chiquita que no se pueda usar */
+  overflow-y: auto;
+  overflow-x: auto; /* 👉 scroll horizontal propio si la pantalla no alcanza */
+  display: block;
+  border-radius: var(--radio);
+  border: 1px solid var(--border-soft);
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 56px;
+  min-width: 0; /* 🔑 sin esto, un item flex crece para acomodar el
+                    contenido de adentro en vez de mantener su ancho
+                    real y dejar que overflow-x haga el scroll */
+}
+
+#gastos #tablaGastos::after,
+#costos #tablaCostos::after {
+  content: "";
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  display: block;
+  height: 26px;
+  margin-top: -26px; /* se superpone al borde inferior, no agrega scroll extra */
+  background: linear-gradient(to bottom, transparent, var(--surface) 85%);
+  pointer-events: none; /* no interfiere con el scroll ni los clics */
+}
+
+/* Cada fila "engancha" contra el borde superior del contenedor al soltar
+   el scroll, así nunca queda una fila cortada a la mitad arriba o abajo. */
+#gastos #tablaGastos tbody tr,
+#costos #tablaCostos tbody tr {
+  scroll-snap-align: start;
+}
+
+/* position:sticky + border-collapse:collapse es una combinación con bugs
+   conocidos: los bordes de las celdas (que en "collapse" pertenecen a la
+   tabla, no a la celda) se pintan por ENCIMA del thead pegajoso, dejando
+   ver fragmentos de la fila que debería estar oculta detrás del encabezado.
+   Por eso estas dos tablas usan "separate" en vez de "collapse". */
+#gastos #tablaGastos table,
+#costos #tablaCostos table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#gastos #tablaGastos thead th,
+#costos #tablaCostos thead th,
+#tablaCostosAmpliado thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-alt);
+  box-shadow: inset 0 -1px 0 var(--border-soft);
+}
+
+#tablaCostosAmpliado table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14.5px;
+}
+
+#tablaCostosAmpliado td,
+#tablaCostosAmpliado th {
+  padding: 12px 14px;
+}
+
+/* Reporte mensual */
+.filtro-fechas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-shrink: 0;
+}
+
+.campo-fecha {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+.campo-fecha label {
+  color: var(--texto-suave);
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.campo-fecha input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: pointer;
+  margin-top: 0;
+  color-scheme: dark;
+}
+
+.filtro-fechas > button {
+  height: 42px;
+}
+
+/* Contactos */
+#contactos .inventario-contenido input {
+  width: 100%;
+}
+
+
+/* ==================================================================
+   6. SECCIÓN VENDEDOR (Punto de venta)
+   ================================================================== */
+.ventas-layout {
+  height: calc(100vh - var(--header-height));
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 8px;
+  padding: 10px 2cm;
+}
+
+/* Botón cierre del día: primera fila, ocupa ambas columnas */
+.ventas-layout > .btn-cierre {
+  grid-column: 1 / 3;
+  width: auto !important;
+  justify-self: start;
+  padding: 8px 16px;
+  margin: 0 0 2px 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+/* Datos de cliente */
+.cliente-top {
+  grid-column: 1 / 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radio);
+  padding: 10px 14px;
+}
+
+.cliente-header {
+  grid-column: 1 / 3;
+  font-family: var(--fuente-display);
+  font-weight: 600;
+  color: var(--acento);
+  margin-bottom: 2px;
+}
+
+.cliente-top input {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Columnas productos / carrito */
+.col-productos,
+.col-carrito {
+  background: var(--surface);
+  padding: 14px;
+  border-radius: var(--radio);
+  border: 1px solid var(--border);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.col-productos {
+  grid-column: 1;
+  grid-row: 3;
+}
+
+.col-carrito {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.col-carrito h2 {
+  margin: 0 0 8px 0;
+}
+
+.col-carrito h2,
+.fila-pago,
+.btn-finalizar,
+.col-carrito h3 {
+  flex-shrink: 0;
+}
+
+#buscador {
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+/* Categorías de producto (pills) */
+.categorias-productos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+  margin: 8px 0;
+}
+
+.btn-categoria {
+  width: auto !important;
+  padding: 9px 16px;
+  white-space: nowrap;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.btn-categoria:hover {
+  border-color: var(--violeta);
+  color: var(--acento);
+}
+
+.btn-volver {
+  width: auto !important;
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+}
+
+/* Grilla de productos: estilo "figura de colección" */
+#listaProductos {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px;
+  align-content: flex-start;
+}
+
+/* Tarjeta de producto: tamaño homogéneo sin importar si el nombre
+   es corto o largo (nombre limitado a 2 líneas con recorte). */
+.btn-producto {
+  width: 100%;
+  height: 128px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radio);
+  border-top: 3px solid var(--violeta);
+  line-height: 1.3;
+}
+
+.btn-producto:hover:not(:disabled) {
+  border-color: var(--acento);
+  border-top-color: var(--acento);
+  background: var(--surface-2);
+}
+
+.producto-nombre {
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.producto-precio {
+  color: var(--exito);
+  font-family: var(--fuente-display);
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.producto-stock {
+  align-self: flex-start;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.stock-ok {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.stock-bajo {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.stock-agotado {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+}
+
+.producto-inactivo {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(60%);
+  border-top-color: var(--border) !important;
+}
+
+/* Carrito */
+#carrito {
+  background: var(--bg-alt);
+  padding: 8px;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--border-soft);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+#carrito table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#carrito thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-alt);
+}
+
+.control-cantidad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.control-cantidad button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+  background: var(--violeta);
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-cantidad button:hover {
+  background: var(--acento);
+}
+
+.control-cantidad span {
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Pago */
+.fila-pago {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.campo-pago {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radio-sm);
+  padding: 10px 12px;
+}
+
+.campo-pago h3 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+}
+
+.campo-pago select,
+.campo-pago input {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Acciones del carrito */
+.acciones-carrito {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-vaciar {
+  width: auto;
+  background: transparent;
+  border: 1px solid var(--peligro);
+  color: var(--peligro);
+}
+
+.btn-vaciar:hover {
+  background: rgba(244, 63, 94, 0.12);
+}
+
+.btn-finalizar {
+  width: 170px;
+  max-width: 250px;
+  padding: 12px 14px;
+  font-size: 14.5px;
+  background: linear-gradient(135deg, var(--exito), #16a34a);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+.btn-finalizar:hover {
+  filter: brightness(1.08);
+}
+
+
+/* ==================================================================
+   7. RESPONSIVE (MÓVIL)
+   ================================================================== */
+@media (max-width: 600px) {
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    height: auto;
+    padding: 14px;
+  }
+
+  .btn-logout {
+    position: static;
+    width: 100%;
+    transform: none;
+  }
+
+  .logo {
+    height: 70px;
+  }
+
+  input, select {
+    width: 100%;
+  }
+
+  /* Admin: en móvil no cabe todo cómodo en un viewport fijo,
+     así que se vuelve a scroll normal de página (igual que Ventas). */
+  .admin-panel {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .admin-shell {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .admin-content,
+  .seccion-admin,
+  .inventario-container,
+  .inventario-contenido,
+  .vista-inventario,
+  .vista-contactos {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .tabla-scroll {
+    max-height: 400px;
+  }
+
+  .admin-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: static;
+  }
+
+  .admin-menu button {
+    flex: 1 1 45%;
+    text-align: center;
+  }
+
+  .inventario-container {
+    flex-direction: column;
+  }
+
+  .inventario-menu {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .inventario-menu button {
+    flex: 1 1 45%;
+    text-align: center;
+  }
+
+  #vistaIngresoInventario,
+  #gastos,
+  #costos,
+  #vistaCrearProveedor {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ventas: scroll normal, no todo cabe cómodamente */
+  .ventas-layout {
+    height: auto !important;
+    overflow: visible !important;
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+
+  .ventas-layout > .btn-cierre {
+    grid-column: 1;
+  }
+
+  .cliente-top {
+    grid-column: 1;
+    grid-template-columns: 1fr;
+  }
+
+  .cliente-header {
+    grid-column: 1;
+  }
+
+  .col-productos,
+  .col-carrito {
+    grid-column: 1;
+    height: auto !important;
+  }
+
+  #carrito {
+    max-height: 240px;
+  }
+
+  /* Tablas tipo tarjeta */
+  table thead {
+    display: none;
+  }
+
+  table tr {
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radio-sm);
+    padding: 10px;
+  }
+
+  table td {
+    display: flex;
+    justify-content: space-between;
+    border: none;
+    padding: 5px 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .admin-shell {
+    grid-template-columns: 230px 1fr;
+  }
+}
