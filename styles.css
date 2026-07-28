@@ -24,17 +24,17 @@
   --border: #2a3a5c;
   --border-soft: #22304c;
 
-  --violeta: #982710;        /* dorado medio — bordes, hover, iconos */
-  --violeta-fuerte: #982710; /* dorado oscuro — degradados fuertes */
-  --magenta: #982710;        /* dorado brillante — segundo tono de degradado */
-  --acento: #982710;         /* dorado vivo — títulos, botones, insignias */
+  --violeta: #ede73b;        /* dorado medio — bordes, hover, iconos */
+  --violeta-fuerte: #ede73b; /* dorado oscuro — degradados fuertes */
+  --magenta: #ede73b;        /* dorado brillante — segundo tono de degradado */
+  --acento: #ede73b;         /* dorado vivo — títulos, botones, insignias */
 
   --texto: #f5f3ec;
   --texto-suave: #b9c2d6;
   --texto-tenue: #7c8aa8;
 
   --exito: #22c55e;
-  --advertencia: #982710;
+  --advertencia: #ede73b;
   --peligro: #f43f5e;
 
   --radio-sm: 8px;
