@@ -899,8 +899,8 @@ async function filtrarProductos() {
   const productosFiltrados = snapshot.docs
     .map(doc => doc.data())
     .filter(p =>
-      p.nombreProducto &&
-      quitarTildes(p.nombreProducto.toLowerCase()).includes(filtro)
+      (p.nombreProducto && quitarTildes(p.nombreProducto.toLowerCase()).includes(filtro)) ||
+      (p.categoria && quitarTildes(p.categoria.toLowerCase()).includes(filtro))
     );
 
   renderListaProductos(productosFiltrados, invSnapshot);
