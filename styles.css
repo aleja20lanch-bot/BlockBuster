@@ -30,7 +30,7 @@
   --acento: #ede73b;         /* dorado vivo — títulos, botones, insignias */
 
   --texto: #fdfcfc;
-  --texto-suave: #0d0d0d;
+  --texto-suave: #b9c2d6;
   --texto-tenue: #7c8aa8;
 
   --exito: #22c55e;
@@ -562,7 +562,7 @@ tbody tr:hover {
 
 .inventario-menu button.active {
   background: var(--violeta);
-  color: white;
+  color: rgb(13, 13, 13);
   border-color: transparent;
   box-shadow: 0 0 10px rgba(139, 63, 214, 0.4);
 }
