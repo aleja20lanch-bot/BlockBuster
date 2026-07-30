@@ -380,6 +380,15 @@ tbody tr:hover {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
 }
 
+.logo-sistema {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 34px;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.35));
+}
+
 .btn-logout {
   position: absolute;
   right: 16px;
@@ -1160,6 +1169,12 @@ tbody tr:hover {
 
   .logo {
     height: 70px;
+  }
+
+  .logo-sistema {
+    position: static;
+    transform: none;
+    height: 26px;
   }
 
   input, select {
