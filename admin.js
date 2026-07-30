@@ -788,10 +788,10 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // =====================
-// 🔢 SKU AUTOMÁTICO (AP-0001, AP-0002, ...)
+// 🔢 SKU AUTOMÁTICO (SKU-0001, SKU-0002, ...)
 // =====================
-const PREFIJO_SKU = "AP-";
-const DIGITOS_SKU = 4; // AP-0001
+const PREFIJO_SKU = "SKU-";
+const DIGITOS_SKU = 4; // SKU-0001
 
 function formatearSku(numero) {
   return PREFIJO_SKU + String(numero).padStart(DIGITOS_SKU, "0");
