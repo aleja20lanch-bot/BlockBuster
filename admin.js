@@ -734,7 +734,9 @@ function mostrarVistaInventario(vista) {
 
   if (vista === "ingresar") {
     document.getElementById("vistaIngresoInventario").style.display = "";
-    cargarProveedores();
+    // 🔒 NO llamar cargarProveedores() aquí: quien invoque mostrarVistaInventario("ingresar")
+    // (abrirIngresoInventario / editarInventario) ya se encarga de cargarlo una sola vez.
+    // Llamarlo también acá duplicaba las opciones del <select> por una condición de carrera.
   }
 
   if (vista === "editar") {
@@ -2349,7 +2351,17 @@ function exportarReporteExcel() {
   XLSX.writeFile(libro, nombreArchivo);
 }
 
-async function reportePorFechas() {
+async function reportePorFechas(btn) {
+  if (btn?.disabled) return; // 🚫 evita doble click
+
+  const textoOriginal = btn?.innerHTML;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loader"></span> Generando...';
+  }
+
+  try {
+
   reporteVisibleActual = [];
 
   const inicio = document.getElementById("fechaInicio")?.value;
@@ -2588,6 +2600,17 @@ async function reportePorFechas() {
   if (!contenedor) return;
 
   contenedor.innerHTML = html;
+
+  } catch (error) {
+    console.error(error);
+    mostrarMensaje("Error al generar el reporte ❌");
+
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = textoOriginal;
+    }
+  }
 }
 
 async function guardarGasto(btn) {
