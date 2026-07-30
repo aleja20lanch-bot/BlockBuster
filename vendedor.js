@@ -133,7 +133,7 @@ function cargarVentas() {
         : Number(String(p.precio).replace(/\D/g, "")) || 0;
 
       html += `
-        <button onclick="agregarProducto('${p.nombreProducto}', ${precio})">
+        <button onclick="agregarProducto('${p.nombreProducto}', ${precio}, '${(p.categoria || "").replace(/'/g, "\\'")}')">
           ${p.nombreProducto} <br> $${formatoMiles(precio)}
         </button>
       `;
@@ -169,8 +169,8 @@ function recalcularCarrito() {
   });
 }
 
-function cambiarDescuento(nombreProducto, valorTexto) {
-  const item = carrito[nombreProducto];
+function cambiarDescuento(clave, valorTexto) {
+  const item = carrito[clave];
   if (!item) return;
 
   const limpio = Number(String(valorTexto).replace(/\D/g, "")) || 0;
@@ -191,10 +191,18 @@ function normalizarNombre(nombre) {
     .toLowerCase()
     .replace(/\s+/g, " ");
 }
+
+// 🔑 IDENTIDAD REAL DE UN PRODUCTO VENDIBLE = nombre + categoría
+// (dos sabores/variantes pueden compartir el mismo "nombre", ej. "Jugo en
+// agua 22 OZ" en categoría Mora vs categoría Uva: son productos distintos,
+// con su propio stock y su propia línea en el carrito)
+function claveVariante(nombreProducto, categoria) {
+  return `${normalizarNombre(nombreProducto)}||${normalizarNombre(categoria)}`;
+}
 // =====================
 // ➕ PRODUCTOS
 // =====================
-async function agregarProducto(nombreProducto, precio) {
+async function agregarProducto(nombreProducto, precio, categoria) {
   precio = Number(precio);
 
   if (!precio || isNaN(precio)) {
@@ -202,9 +210,12 @@ async function agregarProducto(nombreProducto, precio) {
     return;
   }
 
-  // 🔍 CONSULTAR INVENTARIO REAL (suma todos los lotes del producto)
+  const clave = claveVariante(nombreProducto, categoria);
+
+  // 🔍 CONSULTAR INVENTARIO REAL (suma todos los lotes de este nombre+categoría)
   const snapshot = await db.collection("inventario")
     .where("nombreProducto", "==", nombreProducto)
+    .where("categoria", "==", categoria || "")
     .get();
 
   if (snapshot.empty) {
@@ -222,18 +233,19 @@ async function agregarProducto(nombreProducto, precio) {
   }
 
   // 🔥 VALIDAR SI YA HAY EN CARRITO
-  const enCarrito = carrito[nombreProducto]?.cantidad || 0;
+  const enCarrito = carrito[clave]?.cantidad || 0;
 
   if (enCarrito >= cantidadDisponible) {
     return mostrarMensaje("No hay más unidades disponibles");
   }
 
   // ✅ AGREGAR NORMAL
-  if (carrito[nombreProducto]) {
-    carrito[nombreProducto].cantidad++;
+  if (carrito[clave]) {
+    carrito[clave].cantidad++;
   } else {
-    carrito[nombreProducto] = {
+    carrito[clave] = {
       nombreProducto,
+      categoria: categoria || "",
       precio,
       cantidad: 1,
       descuento: 0,
@@ -262,15 +274,20 @@ function actualizarCarrito() {
       </tr>
   `;
 
-  Object.values(carrito).forEach(item => {
+  Object.entries(carrito).forEach(([clave, item]) => {
+    const claveEscapada = clave.replace(/'/g, "\\'");
+    const etiqueta = item.categoria
+      ? `${item.nombreProducto} · ${item.categoria}`
+      : item.nombreProducto;
+
     html += `
       <tr>
-        <td>${item.nombreProducto}</td>
+        <td>${etiqueta}</td>
         <td>
           <div class="control-cantidad">
-            <button onclick="restarProducto('${item.nombreProducto}')">−</button>
+            <button onclick="restarProducto('${claveEscapada}')">−</button>
             <span>${item.cantidad}</span>
-            <button onclick="sumarProducto('${item.nombreProducto}')">+</button>
+            <button onclick="sumarProducto('${claveEscapada}')">+</button>
           </div>
         </td>
         <td>$${formatoMiles(item.precio)}</td>
@@ -281,11 +298,11 @@ function actualizarCarrito() {
             placeholder="$0"
             style="width:80px;text-align:center;"
             oninput="formatearInput(this)"
-            onchange="cambiarDescuento('${item.nombreProducto}', this.value)">
+            onchange="cambiarDescuento('${claveEscapada}', this.value)">
         </td>
         <td>$${formatoMiles(item.total)}</td>
         <td>
-          <button onclick="eliminarProducto('${item.nombreProducto}')">❌</button>
+          <button onclick="eliminarProducto('${claveEscapada}')">❌</button>
         </td>
       </tr>
     `;
@@ -314,15 +331,16 @@ function actualizarCarrito() {
 // =====================
 // ➕➖ CONTROL
 // =====================
-async function sumarProducto(nombreProducto) {
+async function sumarProducto(clave) {
 
-  const item = carrito[nombreProducto];
+  const item = carrito[clave];
 
   if (!item) return;
 
-  // 🔍 consultar inventario (suma todos los lotes del producto)
+  // 🔍 consultar inventario (suma todos los lotes de este nombre+categoría)
   const snapshot = await db.collection("inventario")
-    .where("nombreProducto", "==", nombreProducto)
+    .where("nombreProducto", "==", item.nombreProducto)
+    .where("categoria", "==", item.categoria || "")
     .get();
 
   if (snapshot.empty) {
@@ -347,12 +365,13 @@ async function sumarProducto(nombreProducto) {
   actualizarTotal();
 }
 
-function restarProducto(nombre) {
-  const item = carrito[nombre];
+function restarProducto(clave) {
+  const item = carrito[clave];
+  if (!item) return;
 
   item.cantidad--;
 
-  if (item.cantidad <= 0) delete carrito[nombre];
+  if (item.cantidad <= 0) delete carrito[clave];
 
   recalcularCarrito();
   actualizarTotal();
@@ -362,10 +381,10 @@ function restarProducto(nombre) {
 // =====================
 // ❌ ELIMINAR
 // =====================
-function eliminarProducto(nombre) {
-  if (!carrito[nombre]) return;
+function eliminarProducto(clave) {
+  if (!carrito[clave]) return;
 
-  delete carrito[nombre];
+  delete carrito[clave];
 
   recalcularCarrito();
   actualizarTotal();
@@ -447,9 +466,10 @@ function cambiarMetodoPago() {
 // =====================
 // 📉 DESCONTAR INVENTARIO TRAS UNA VENTA
 // =====================
-async function descontarInventario(nombreProducto, cantidadVendida, idTransaccion) {
+async function descontarInventario(nombreProducto, categoria, cantidadVendida, idTransaccion) {
   const snapshot = await db.collection("inventario")
     .where("nombreProducto", "==", nombreProducto)
+    .where("categoria", "==", categoria || "")
     .get();
 
   if (snapshot.empty) return;
@@ -494,13 +514,14 @@ async function descontarInventario(nombreProducto, cantidadVendida, idTransaccio
     }
   }
 
-  await sincronizarStockProducto(nombreProducto);
+  await sincronizarStockProducto(nombreProducto, categoria);
 }
 
-// 🔄 recalcula el stock total (suma de todos los ingresos) y lo refleja en "productos"
-async function sincronizarStockProducto(nombreProducto) {
+// 🔄 recalcula el stock total de UNA VARIANTE (nombre+categoría) y lo refleja en "productos"
+async function sincronizarStockProducto(nombreProducto, categoria) {
   const invSnap = await db.collection("inventario")
     .where("nombreProducto", "==", nombreProducto)
+    .where("categoria", "==", categoria || "")
     .get();
 
   let stockTotal = 0;
@@ -510,6 +531,7 @@ async function sincronizarStockProducto(nombreProducto) {
 
   const prodSnap = await db.collection("productos")
     .where("nombreProducto", "==", nombreProducto)
+    .where("categoria", "==", categoria || "")
     .get();
 
   const actualizaciones = prodSnap.docs.map(doc =>
@@ -658,9 +680,10 @@ function mostrarRecibo(venta, idTransaccion) {
 // =====================
 // 💰 COSTO PROMEDIO (para reportes de utilidad)
 // =====================
-async function obtenerCostoPromedio(nombreProducto) {
+async function obtenerCostoPromedio(nombreProducto, categoria) {
   const snapshot = await db.collection("inventario")
     .where("nombreProducto", "==", nombreProducto)
+    .where("categoria", "==", categoria || "")
     .get();
 
   if (snapshot.empty) return 0;
@@ -744,7 +767,7 @@ async function guardarVenta(btn) {
     // 💰 capturar el costo promedio de cada producto AL MOMENTO de la venta
     // (para que el reporte de utilidad no dependa del costo actual del inventario)
     for (const item of productos) {
-      item.costoUnitario = await obtenerCostoPromedio(item.nombreProducto);
+      item.costoUnitario = await obtenerCostoPromedio(item.nombreProducto, item.categoria);
     }
 
     // 🔢 ID de transacción secuencial y atómico (VT-00001, VT-00002, ...)
@@ -764,7 +787,7 @@ async function guardarVenta(btn) {
 
     // 📉 DESCONTAR DEL INVENTARIO LO QUE SE ACABA DE VENDER
     for (const item of productos) {
-      await descontarInventario(item.nombreProducto, item.cantidad, idTransaccion);
+      await descontarInventario(item.nombreProducto, item.categoria, item.cantidad, idTransaccion);
     }
 
     mostrarMensaje(`Venta guardada ✅ (${idTransaccion})`);
@@ -923,7 +946,7 @@ function cargarProductos() {
       let accion = "";
 
       if (!deshabilitado) {
-        accion = `onclick="agregarProducto('${p.nombreProducto}', ${p.precio})"`;
+        accion = `onclick="agregarProducto('${p.nombreProducto}', ${p.precio}, '${(p.categoria || "").replace(/'/g, "\\'")}')"`;
       }
 
       html += `
@@ -1010,14 +1033,15 @@ async function mostrarProductosCategoria(categoria) {
 // 🔁 Renderer compartido entre "ver por categoría" y "buscar"
 function renderListaProductos(productos, invSnapshot) {
 
-  // 📦 Stock real por nombre de producto (normalizado, sumando todos los ingresos de inventario)
-  const stockPorProducto = {};
+  // 📦 Stock real por VARIANTE (nombre+categoría, normalizado), sumando todos
+  // los ingresos de inventario de esa variante específica
+  const stockPorVariante = {};
   invSnapshot.forEach(doc => {
     const inv = doc.data();
     if (!inv.nombreProducto) return;
-    const clave = normalizarNombre(inv.nombreProducto);
-    stockPorProducto[clave] =
-      (stockPorProducto[clave] || 0) + (Number(inv.cantidad) || 0);
+    const clave = claveVariante(inv.nombreProducto, inv.categoria);
+    stockPorVariante[clave] =
+      (stockPorVariante[clave] || 0) + (Number(inv.cantidad) || 0);
   });
 
   let html = `
@@ -1034,13 +1058,13 @@ function renderListaProductos(productos, invSnapshot) {
 
     if (!producto.nombreProducto) return;
 
-    const clave = normalizarNombre(producto.nombreProducto);
-    const tieneMatch = stockPorProducto.hasOwnProperty(clave);
+    const clave = claveVariante(producto.nombreProducto, producto.categoria);
+    const tieneMatch = stockPorVariante.hasOwnProperty(clave);
 
     // 🔒 SIN MATCH EN INVENTARIO = NO DISPONIBLE
     if (!tieneMatch) return;
 
-    const stock = stockPorProducto[clave];
+    const stock = stockPorVariante[clave];
     const sinStock = stock <= 0;
 
     let claseStock = "stock-ok";
@@ -1051,12 +1075,18 @@ function renderListaProductos(productos, invSnapshot) {
 
     algunoVisible = true;
 
+    const nombreEscapado = producto.nombreProducto.replace(/'/g, "\\'");
+    const categoriaEscapada = (producto.categoria || "").replace(/'/g, "\\'");
+    const etiqueta = producto.categoria
+      ? `${producto.nombreProducto} · ${producto.categoria}`
+      : producto.nombreProducto;
+
     html += `
       <button
         class="btn-producto ${sinStock ? "producto-inactivo" : ""}"
-        ${sinStock ? "disabled" : `onclick="agregarProducto('${producto.nombreProducto}', ${producto.precio})"`}>
+        ${sinStock ? "disabled" : `onclick="agregarProducto('${nombreEscapado}', ${producto.precio}, '${categoriaEscapada}')"`}>
 
-        <span class="producto-nombre">${producto.nombreProducto}</span>
+        <span class="producto-nombre">${etiqueta}</span>
         <span class="producto-precio">$${formatoMiles(producto.precio)}</span>
         <span class="producto-stock ${claseStock}">${textoStock}</span>
 
