@@ -880,6 +880,7 @@ async function editarInventario(id) {
     window.modoInventario = "editar";
     window.idInventarioEditando = id;
     window.nombreProductoOriginalEditando = i.nombreProducto; // 🔑 para detectar cambio de nombre
+    window.categoriaProductoOriginalEditando = i.categoria || ""; // 🔑 identidad = nombre + categoría
 
   } catch (error) {
     console.error(error);
@@ -935,6 +936,7 @@ async function guardarInventario(btn) {
   const modo = window.modoInventario;
   const idActual = window.idInventarioEditando;
   const nombreOriginal = window.nombreProductoOriginalEditando;
+  const categoriaOriginal = window.categoriaProductoOriginalEditando;
 
   let textoOriginal = btn.innerHTML;
 
@@ -1056,24 +1058,35 @@ async function guardarInventario(btn) {
       mostrarMensaje("Inventario guardado ✅");
     }
 
-    // 🧹 SI CAMBIÓ EL NOMBRE, borrar el producto huérfano con el nombre viejo
-    // (si no, se queda un documento fantasma visible para el vendedor)
-    if (modo === "editar" && nombreOriginal && nombreOriginal !== nombreProducto) {
+    // 🧹 SI CAMBIÓ EL NOMBRE O LA CATEGORÍA, borrar el producto huérfano viejo
+    // (si no, se queda un documento fantasma visible para el vendedor).
+    // La identidad de un producto vendible es el PAR nombre+categoría, no solo el nombre.
+    if (
+      modo === "editar" &&
+      nombreOriginal &&
+      (nombreOriginal !== nombreProducto || categoriaOriginal !== categoria)
+    ) {
       const huerfanos = await db.collection("productos")
         .where("nombreProducto", "==", nombreOriginal)
+        .where("categoria", "==", categoriaOriginal)
         .get();
 
       const borrados = huerfanos.docs.map(doc => doc.ref.delete());
       await Promise.all(borrados);
     }
 
-    // 🔥 SINCRONIZAR PRODUCTOS
+    // 🔥 SINCRONIZAR PRODUCTOS — identificado por nombre + categoría, NO solo nombre
+    // (dos sabores distintos pueden compartir el mismo "nombre" de producto, ej.
+    // "Jugo en agua 22 OZ" en categoría Mora vs categoría Uva: son productos distintos)
     const refProductos = db.collection("productos");
-    const query = await refProductos.where("nombreProducto", "==", nombreProducto).get();
+    const query = await refProductos
+      .where("nombreProducto", "==", nombreProducto)
+      .where("categoria", "==", categoria)
+      .get();
 
     if (modo === "editar") {
       // 🔒 en edición solo se actualiza categoría/nombre en "productos",
-      // el precio y el stock no se tocan aquí (los maneja ingreso/venta)
+      // el precio no se toca aquí (lo maneja ingreso/venta)
       if (!query.empty) {
         await refProductos.doc(query.docs[0].id).update({ categoria, nombreProducto });
       } else {
@@ -1081,9 +1094,15 @@ async function guardarInventario(btn) {
           categoria,
           nombreProducto,
           precio: venta,
-          stock: cantidad,
-          activo: cantidad > 0
+          stock: 0,
+          activo: false
         });
+      }
+
+      // 🔄 recalcular el stock real de ESTE par nombre+categoría (nunca asumir que
+      // el stock del lote editado es todo el stock disponible del producto)
+      if (typeof sincronizarStockProducto === "function") {
+        await sincronizarStockProducto(nombreProducto, categoria);
       }
     } else {
       if (!query.empty) {
@@ -1105,7 +1124,7 @@ async function guardarInventario(btn) {
       // 🔄 recalcular el stock real sumando TODOS los lotes de este producto
       // (evita que un nuevo ingreso pise el total con solo la cantidad de este lote)
       if (typeof sincronizarStockProducto === "function") {
-        await sincronizarStockProducto(nombreProducto);
+        await sincronizarStockProducto(nombreProducto, categoria);
       }
     }
 
@@ -1411,7 +1430,7 @@ async function eliminarInventario(id) {
       // 🔄 recalcular el stock real del producto (puede quedar en 0
       // si este era el único lote que tenía)
       if (typeof sincronizarStockProducto === "function") {
-        await sincronizarStockProducto(data.nombreProducto);
+        await sincronizarStockProducto(data.nombreProducto, data.categoria);
       }
 
       // 📜 dejar rastro en la trazabilidad
@@ -1663,10 +1682,11 @@ async function generarSiguienteIdAnulacion() {
 }
 
 // 🔄 devuelve la cantidad al inventario del producto (a un lote existente,
-// o crea uno de ajuste si no queda ningún lote registrado para ese nombre)
-async function devolverInventario(nombreProducto, cantidad) {
+// o crea uno de ajuste si no queda ningún lote registrado para ese nombre+categoría)
+async function devolverInventario(nombreProducto, categoria, cantidad) {
   const snapshot = await db.collection("inventario")
     .where("nombreProducto", "==", nombreProducto)
+    .where("categoria", "==", categoria || "")
     .limit(1)
     .get();
 
@@ -1689,7 +1709,7 @@ async function devolverInventario(nombreProducto, cantidad) {
     await db.collection("inventario").add({
       nombreProducto,
       cantidad,
-      categoria: "",
+      categoria: categoria || "",
       proveedor: "Ajuste por anulación",
       fecha: new Date().toISOString().slice(0, 10),
       sku,
@@ -1701,7 +1721,7 @@ async function devolverInventario(nombreProducto, cantidad) {
   }
 
   if (typeof sincronizarStockProducto === "function") {
-    await sincronizarStockProducto(nombreProducto);
+    await sincronizarStockProducto(nombreProducto, categoria);
   }
 }
 
@@ -1723,7 +1743,7 @@ async function anularVenta(id) {
 
       // 🔄 devolver cada producto de la venta al inventario
       for (const item of (venta.productos || [])) {
-        await devolverInventario(item.nombreProducto, item.cantidad);
+        await devolverInventario(item.nombreProducto, item.categoria, item.cantidad);
 
         if (typeof registrarMovimiento === "function") {
           await registrarMovimiento({
