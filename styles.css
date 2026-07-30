@@ -704,7 +704,8 @@ tbody tr:hover {
 #costos > button,
 #vistaCrearProveedor > button {
   width: auto;
-  justify-self: start;
+  justify-self: start;  /* para los contenedores en grid (ingreso/crear proveedor) */
+  align-self: flex-start; /* para #gastos y #costos, que son flex-column */
   padding: 10px 24px;
 }
 
