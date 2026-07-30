@@ -1279,6 +1279,7 @@ tbody tr:hover {
   .col-productos,
   .col-carrito {
     grid-column: 1;
+    grid-row: auto;
     height: auto !important;
   }
 
